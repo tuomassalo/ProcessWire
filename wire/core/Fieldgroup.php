@@ -583,6 +583,8 @@ class Fieldgroup extends WireArray implements Saveable, Exportable, HasLookupIte
 			}
 		}
 
+		$prefetchFields = [];
+
 		foreach($this as $field) {
 			/** @var Field $field */
 		
@@ -666,8 +668,7 @@ class Fieldgroup extends WireArray implements Saveable, Exportable, HasLookupIte
 			if($inputfield->collapsed == Inputfield::collapsedHidden) continue;
 
 			if($populate && !$page instanceof NullPage) {
-				$value = $page->get($field->name);
-				$inputfield->setAttribute('value', $value);
+				$prefetchFields[$field->name] = $inputfield;
 			}
 			
 			if($multiMode) {
@@ -676,6 +677,11 @@ class Fieldgroup extends WireArray implements Saveable, Exportable, HasLookupIte
 				$container->add($inputfield);
 			}
 		}		
+
+		$page->prefetch(array_keys($prefetchFields));
+		foreach($prefetchFields as $key => $inputfield) {
+			$inputfield->setAttribute('value', $page->get($key));
+		}
 		
 		if($multiMode) {
 			// add to container in requested order
